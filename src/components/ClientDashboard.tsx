@@ -8,7 +8,8 @@ import { toast } from '@/hooks/use-toast';
 import PropertyList from './PropertyList';
 import PublicationForm from './PublicationForm';
 import PublicationHistory from './PublicationHistory';
-import { Building2, Plus, History, LogOut, User } from 'lucide-react';
+import FuturePublications from './FuturePublications';
+import { Building2, Plus, History, LogOut, User, Clock } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -70,6 +71,22 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ client, onLogout }) =
           date: '2024-06-20',
           timeSlot: 'morning',
           status: 'published'
+        },
+        {
+          id: '2',
+          propertyId: '2',
+          clientId: client.id,
+          date: '2024-06-26',
+          timeSlot: 'afternoon',
+          status: 'scheduled'
+        },
+        {
+          id: '3',
+          propertyId: '3',
+          clientId: client.id,
+          date: '2024-06-27',
+          timeSlot: 'evening',
+          status: 'scheduled'
         }
       ];
 
@@ -92,6 +109,16 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ client, onLogout }) =
       title: "פרסום נוצר בהצלחה",
       description: "הפרסום נשמר במערכת",
     });
+  };
+
+  const handleUpdatePublication = (updatedPublication: any) => {
+    setPublications(publications.map(pub => 
+      pub.id === updatedPublication.id ? updatedPublication : pub
+    ));
+  };
+
+  const handleDeletePublication = (publicationId: string) => {
+    setPublications(publications.filter(pub => pub.id !== publicationId));
   };
 
   if (loading) {
@@ -133,7 +160,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ client, onLogout }) =
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="properties" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="properties" className="flex items-center space-x-2 space-x-reverse">
               <Building2 className="w-4 h-4" />
               <span>הנכסים שלי</span>
@@ -142,9 +169,13 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ client, onLogout }) =
               <Plus className="w-4 h-4" />
               <span>פרסום חדש</span>
             </TabsTrigger>
+            <TabsTrigger value="future-publications" className="flex items-center space-x-2 space-x-reverse">
+              <Clock className="w-4 h-4" />
+              <span>פרסומים עתידיים</span>
+            </TabsTrigger>
             <TabsTrigger value="history" className="flex items-center space-x-2 space-x-reverse">
               <History className="w-4 h-4" />
-              <span>היסטוריית פרסומים</span>
+              <span>היסטוריה</span>
             </TabsTrigger>
           </TabsList>
 
@@ -162,6 +193,15 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ client, onLogout }) =
               publications={publications}
               clientId={client.id}
               onSuccess={handlePublicationSuccess}
+            />
+          </TabsContent>
+
+          <TabsContent value="future-publications">
+            <FuturePublications 
+              publications={publications}
+              properties={properties}
+              onUpdatePublication={handleUpdatePublication}
+              onDeletePublication={handleDeletePublication}
             />
           </TabsContent>
 
