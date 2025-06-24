@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Building2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { he } from 'date-fns/locale';
 
 interface Property {
@@ -43,17 +43,24 @@ const PublicationHistory: React.FC<PublicationHistoryProps> = ({ publications, p
     return properties.find(p => p.id === propertyId);
   };
 
-  const sortedPublications = [...publications].sort((a, b) => 
+  // Filter to show only past publications (where the date has already passed)
+  const today = startOfDay(new Date());
+  const pastPublications = publications.filter(publication => {
+    const pubDate = startOfDay(new Date(publication.date));
+    return pubDate < today;
+  });
+
+  const sortedPublications = [...pastPublications].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
-  if (publications.length === 0) {
+  if (pastPublications.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-12">
           <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">אין פרסומים עדיין</h3>
-          <p className="text-gray-600">כשתפרסמו נכסים, הם יופיעו כאן</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">אין פרסומים שעברו עדיין</h3>
+          <p className="text-gray-600">פרסומים שכבר התרחשו יופיעו כאן</p>
         </CardContent>
       </Card>
     );
@@ -64,7 +71,7 @@ const PublicationHistory: React.FC<PublicationHistoryProps> = ({ publications, p
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">היסטוריית פרסומים</h2>
         <Badge variant="outline" className="text-sm">
-          {publications.length} פרסומים
+          {pastPublications.length} פרסומים
         </Badge>
       </div>
 

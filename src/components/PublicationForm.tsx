@@ -17,6 +17,7 @@ import {
   isNewProperty,
   getAvailableProperties 
 } from '@/utils/publicationUtils';
+import { savePublication } from '@/utils/airtableApi';
 
 interface Property {
   id: string;
@@ -140,7 +141,6 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Simulate API call to Airtable
       const newPublication: Publication = {
         id: Date.now().toString(),
         propertyId: selectedProperty,
@@ -150,8 +150,8 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         status: 'published'
       };
 
-      // Here you would make the actual API call to Airtable
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to Airtable
+      await savePublication(newPublication);
 
       onSuccess(newPublication);
 
@@ -159,6 +159,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
       setSelectedDate(undefined);
       setSelectedTimeSlot('');
       setSelectedProperty('');
+
+      toast({
+        title: "הצלחה",
+        description: "הפרסום נשמר בהצלחה",
+        variant: "default"
+      });
 
     } catch (error) {
       toast({
@@ -173,6 +179,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
   const availableDates = getAvailableDates();
   const selectableProperties = getSelectableProperties();
+  
+  // Check if all fields are filled and valid
+  const canShowSummary = selectedDate && selectedTimeSlot && selectedProperty && selectableProperties.length > 0;
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -273,7 +282,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           )}
         </div>
 
-        {selectedDate && selectedTimeSlot && selectedProperty && (
+        {canShowSummary && (
           <div className="bg-blue-50 border border-blue-200 rounded p-4">
             <div className="flex items-center space-x-2 space-x-reverse mb-2">
               <CheckCircle className="w-5 h-5 text-blue-600" />
@@ -289,7 +298,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
         <Button 
           onClick={handleSubmit} 
-          disabled={!selectedDate || !selectedTimeSlot || !selectedProperty || isSubmitting}
+          disabled={!canShowSummary || isSubmitting}
           className="w-full"
           size="lg"
         >

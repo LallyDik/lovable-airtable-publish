@@ -11,6 +11,7 @@ import { format, addDays, startOfDay } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { updatePublication } from '@/utils/airtableApi';
 
 interface Property {
   id: string;
@@ -63,7 +64,6 @@ const PublicationEditForm: React.FC<PublicationEditFormProps> = ({
     setLoading(true);
 
     try {
-      // Simulate API call to update publication
       const updatedPublication: Publication = {
         ...publication,
         date: format(selectedDate, 'yyyy-MM-dd'),
@@ -71,10 +71,16 @@ const PublicationEditForm: React.FC<PublicationEditFormProps> = ({
         propertyId: selectedProperty
       };
 
-      // Here you would make the actual API call to Airtable
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update in Airtable
+      await updatePublication(updatedPublication);
 
       onSuccess(updatedPublication);
+      
+      toast({
+        title: "הצלחה",
+        description: "הפרסום עודכן בהצלחה",
+        variant: "default"
+      });
     } catch (error) {
       toast({
         title: "שגיאה",
@@ -89,80 +95,82 @@ const PublicationEditForm: React.FC<PublicationEditFormProps> = ({
   const selectedPropertyDetails = properties.find(p => p.id === selectedProperty);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" dir="rtl">
-      <div className="space-y-2">
-        <Label>נכס</Label>
-        <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {properties.map((property) => (
-              <SelectItem key={property.id} value={property.id}>
-                {property.address} - {property.type} ({property.rooms} חדרים)
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="space-y-4" dir="rtl">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label>נכס</Label>
+          <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {properties.map((property) => (
+                <SelectItem key={property.id} value={property.id}>
+                  {property.address} - {property.type} ({property.rooms} חדרים)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="space-y-2">
-        <Label>תאריך פרסום</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-right font-normal",
-                !selectedDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="ml-2 h-4 w-4" />
-              {selectedDate ? (
-                format(selectedDate, "PPP", { locale: he })
-              ) : (
-                <span>בחר תאריך</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              disabled={(date) => date < today || date > maxDate}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+        <div className="space-y-2">
+          <Label>תאריך פרסום</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-right font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="ml-2 h-4 w-4" />
+                {selectedDate ? (
+                  format(selectedDate, "PPP", { locale: he })
+                ) : (
+                  <span>בחר תאריך</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                disabled={(date) => date < today || date > maxDate}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
 
-      <div className="space-y-2">
-        <Label>טווח זמן</Label>
-        <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {timeSlots.map((slot) => (
-              <SelectItem key={slot.value} value={slot.value}>
-                {slot.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="space-y-2">
+          <Label>טווח זמן</Label>
+          <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {timeSlots.map((slot) => (
+                <SelectItem key={slot.value} value={slot.value}>
+                  {slot.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="flex space-x-2 space-x-reverse pt-4">
-        <Button type="submit" disabled={loading} className="flex-1">
-          {loading ? 'שומר...' : 'שמור שינויים'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-          ביטול
-        </Button>
-      </div>
-    </form>
+        <div className="flex space-x-2 space-x-reverse pt-4">
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading ? 'שומר...' : 'שמור שינויים'}
+          </Button>
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            ביטול
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
